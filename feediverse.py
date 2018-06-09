@@ -104,9 +104,11 @@ def setup(config_file):
         ]
     }
     save_config(config, config_file)
+    print("")
     print("Your feediverse configuration has been saved to {}".format(config_file))
     print("Add a line line this to your crontab to check every 15 minutes:")
     print("*/15 * * * * /usr/local/bin/feediverse")
+    print("")
 
 if __name__ == "__main__":
     main()
