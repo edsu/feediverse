@@ -25,8 +25,7 @@ def main():
 
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated']):
-            print(feed['template'].format(**entry))
-            #masto.status_post(get_text(entry))
+            masto.status_post(get_text(entry))
 
     save_config(config, config_file)
 
@@ -66,7 +65,8 @@ def get_feed(feed_url, last_update):
 def get_entry(entry):
     hashtags = []
     for tag in entry.get('tags', []):
-        hashtags.append('#{}'.format(tag.value))
+        for t in tag['term'].split(' '):
+            hashtags.append('#{}'.format(t))
     return {
         'url': entry.id,
         'title': entry.title,
