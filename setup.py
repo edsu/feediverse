@@ -6,7 +6,7 @@ with open("README.md") as f:
 setup(
     name='feediverse',
     version='0.0.3',
-    python_requires='python>=3.5',
+    python_requires='>=2.7',
     url='https://github.com/edsu/feediverse',
     author='Ed Summers',
     author_email='ehs@pobox.com',
