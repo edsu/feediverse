@@ -25,7 +25,7 @@ def main():
 
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated']):
-            masto.status_post(get_text(entry))
+            masto.status_post(feed['template'].format(entry))
 
     save_config(config, config_file)
 
