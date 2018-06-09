@@ -1,0 +1,4 @@
+feediverse.egg-info
+Pipfile*
+__pycache__
+.config.yml.swp
