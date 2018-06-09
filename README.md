@@ -1,6 +1,6 @@
 *feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts.
-It's kind of the same thing as [feed2toot] but just one module that works with
-Python 3.
+Please use responsibly! *feediverse* is kind of the same thing as [feed2toot]
+but it's just one module that works with Python 3 ... and I was bored.
 
 ## Install
 
@@ -26,9 +26,13 @@ format is:
 
     {title} {url}
 
-But you can use the `{summary}` as well, and also add text like so:
+If you want you can use `{summary}` in your template, and add boilerplate text
+like so:
 
     Bookmark: {title} {url} {summary}
+
+`{hashtags}` will look for tags in the feed entry and turn them into a space
+separated list of hashtags.
 
 ## Multiple Feeds
 
@@ -43,14 +47,16 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
 
 ## Why?
 
-I created *feediverse* because I wanted to send my Pinboard bookmarks to Mastodon.
-I've got an IFTTT recipe that does this for Twitter, but IFTTT doesn't appear to
-work with Mastodon yet.
+I created *feediverse* because I wanted to send my Pinboard bookmarks to
+Mastodon.  I've got an IFTTT recipe that does this for Twitter, but IFTTT
+doesn't appear to work with Mastodon yet. That being said *feediverse* should
+work with any RSS or Atom feed (thanks to [feedparser]).
 
-That being said *feediverse* should work with any RSS or Atom feed (thanks to
-[feedparser]). But please be responsible. Don't fill up Mastodon with tons of
-junk just because you can. That kind of toxic behavior is why a lot of people
-are leaving other social media platforms and trying to start over in Mastodon.
+## Warning!
+
+Please be responsible. Don't fill up Mastodon with tons of junk just because you
+can. That kind of toxic behavior is why a lot of people are trying to establish
+other forms of social media like Mastodon.
 
 [feed2toot]: https://gitlab.com/chaica/feed2toot/
 [feedparser]: http://feedparser.org/

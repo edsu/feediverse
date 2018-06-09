@@ -30,6 +30,13 @@ def main():
 
     save_config(config, config_file)
 
+def get_config_file():
+    if __name__ == "__main__" and len(sys.argv) > 1:
+        config_file = sys.argv[1]
+    else:
+        config_file = os.path.join(os.path.expanduser("~"), ".feediverse")
+    return config_file
+
 def save_config(config, config_file):
     copy = dict(config)
     copy['updated'] = datetime.now(tz=timezone.utc).isoformat()
@@ -57,10 +64,14 @@ def get_feed(feed_url, last_update):
     return new_entries
 
 def get_entry(entry):
+    hashtags = []
+    for tag in entry.get('tags', []):
+        hashtags.add('#{}'.format(tag.value))
     return {
         'url': entry.id,
         'title': entry.title,
         'summary': entry.get('summary', ''),
+        'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
     }
 
@@ -96,13 +107,6 @@ def setup(config_file):
     print("Your feediverse configuration has been saved to {}".format(config_file))
     print("Add a line line this to your crontab to check every 15 minutes:")
     print("*/15 * * * * /usr/local/bin/feediverse")
-
-def get_config_file():
-    if __name__ == "__main__" and len(sys.argv) > 1:
-        config_file = sys.argv[1]
-    else:
-        config_file = os.path.join(os.path.expanduser("~"), ".feediverse")
-    return config_file
 
 if __name__ == "__main__":
     main()
