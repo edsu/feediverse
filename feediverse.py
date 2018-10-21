@@ -86,12 +86,17 @@ def setup(config_file):
     else:
         print("Ok, I'll need a few things in order to get your access token")
         name = input('app name (e.g. feediverse): ') 
-        client_id, client_secret = Mastodon.create_app(name, scopes=['read', 'write'], website='https://github.com/edsu/feediverse')
+        client_id, client_secret = Mastodon.create_app(
+            api_base_url=url,
+            client_name=name,
+            #scopes=['read', 'write'],
+            website='https://github.com/edsu/feediverse'
+        )
         username = input('mastodon username (email): ')
         password = input('mastodon password (not stored): ')
+        m = Mastodon(client_id=client_id, client_secret=client_secret, api_base_url=url)
         access_token = m.log_in(username, password)
 
-    m = Mastodon(client_id, client_secret)
     feed_url = input('RSS/Atom feed URL to watch: ')
     config = {
         'name': name,
