@@ -69,6 +69,7 @@ def get_entry(entry):
             hashtags.append('#{}'.format(t))
     return {
         'url': entry.id,
+        'link': entry.link,
         'title': entry.title,
         'summary': entry.get('summary', ''),
         'hashtags': ' '.join(hashtags),
