@@ -32,7 +32,7 @@ like so:
     Bookmark: {title} {url} {summary}
 
 `{hashtags}` will look for tags in the feed entry and turn them into a space
-separated list of hashtags.
+separated list of hashtags. For some feeds (e.g. youtube-rss) you should use `{link}` instead of `{url}`.
 
 ## Multiple Feeds
 
