@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 import yaml
 import dateutil
 import feedparser
@@ -9,8 +10,17 @@ import feedparser
 from mastodon import Mastodon
 from datetime import datetime, timezone
 
+DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
+
 def main():
-    config_file = get_config_file()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config_file", nargs="?", metavar="CONFIG-FILE",
+                        help=("config file to use, default: %s" %
+                              DEFAULT_CONFIG_FILE),
+                        default=os.path.expanduser(DEFAULT_CONFIG_FILE))
+    args = parser.parse_args()
+    config_file = args.config_file
+
     if not os.path.isfile(config_file):
         setup(config_file)        
 
@@ -28,13 +38,6 @@ def main():
             masto.status_post(feed['template'].format(**entry)[0:49999999999])
 
     save_config(config, config_file)
-
-def get_config_file():
-    if __name__ == "__main__" and len(sys.argv) > 1:
-        config_file = sys.argv[1]
-    else:
-        config_file = os.path.join(os.path.expanduser("~"), ".feediverse")
-    return config_file
 
 def save_config(config, config_file):
     copy = dict(config)
