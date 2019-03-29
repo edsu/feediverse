@@ -58,12 +58,15 @@ def read_config(config_file):
 def get_feed(feed_url, last_update):
     new_entries = 0
     feed = feedparser.parse(feed_url)
-    feed.entries.sort(key=lambda e: e.published_parsed)
-    for entry in feed.entries:
-        e = get_entry(entry)
-        if last_update is None or e['updated'] > last_update:
-            new_entries += 1
-            yield e
+    if last_update:
+        entries = [e for e in feed.entries
+                   if dateutil.parser.parse(e['updated']) > last_update]
+    else:
+        entries = feed.entries
+    entries.sort(key=lambda e: e.published_parsed)
+    for entry in entries:
+        new_entries += 1
+        yield get_entry(entry)
     return new_entries
 
 def get_entry(entry):
