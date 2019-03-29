@@ -6,9 +6,11 @@ import argparse
 import yaml
 import dateutil
 import feedparser
+from bs4 import BeautifulSoup
 
 from mastodon import Mastodon
 from datetime import datetime, timezone
+
 
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
 
@@ -74,10 +76,11 @@ def get_entry(entry):
     for tag in entry.get('tags', []):
         for t in tag['term'].split(' '):
             hashtags.append('#{}'.format(t))
+    summary = entry.get('summary', '')
     return {
         'url': entry.id,
-        'title': entry.title,
-        'summary': entry.get('summary', ''),
+        'title': BeautifulSoup(entry.title, 'html.parser').get_text(),
+        'summary': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
     }
