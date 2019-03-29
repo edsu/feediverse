@@ -55,6 +55,7 @@ def read_config(config_file):
 def get_feed(feed_url, last_update):
     new_entries = 0
     feed = feedparser.parse(feed_url)
+    feed.entries.sort(key=lambda e: e.published_parsed)
     for entry in feed.entries:
         e = get_entry(entry)
         if last_update is None or e['updated'] > last_update:
