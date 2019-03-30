@@ -2,6 +2,7 @@
 
 import os
 import sys
+import codecs
 import argparse
 import yaml
 import dateutil
@@ -16,6 +17,14 @@ import urllib3
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
 
 http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
+
+# encoding error-handler for buggy wordpress urls
+def __urlencodereplace_errors(exc):
+    bs = exc.object[exc.start:exc.end].encode("utf-8")
+    bs = b"".join(b'%%%X' % b for b in bs)
+    return (bs, exc.end)
+codecs.register_error("urlencodereplace", __urlencodereplace_errors)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -90,7 +99,7 @@ def get_feed(feed_url, last_update):
         yield get_entry(entry, generator)
     return new_entries
 
-def collect_images(entry):
+def collect_images(entry, generator=None):
 
     def find_urls(part):
         if not part:
@@ -113,6 +122,12 @@ def collect_images(entry):
         if (e["type"].startswith(("image/", "video/")) and
             e["href"] not in urls):
             urls.append(e["href"])
+    if generator == "wordpress":
+        # Work around a wordpress bug: If the filename contains an
+        # umlaut, this will not be encoded using %-escape, as the
+        # standard demands. This will break encoding in http.request()
+        urls = (u.encode("ascii", "urlencodereplace").decode()
+                for u in urls)
     images = []
     for url in urls:
         resp = http.request('GET', url, preload_content=False)
@@ -145,7 +160,7 @@ def get_entry(entry, generator=None):
         'content': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
-        'images': collect_images(entry),
+        'images': collect_images(entry, generator),
     }
 
 def setup(config_file):
