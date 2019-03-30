@@ -130,8 +130,15 @@ def get_entry(entry, generator=None):
         for t in tag['term'].split():
             hashtags.append('#' + t)
     summary = entry.get('summary', '')
+    url = entry.id
+    if generator == "wordpress":
+        links = [l for l in entry.links if l.get("rel") == "alternate"]
+        if len(links) > 1:
+            links = [l for l in entry.links if l.get("type") == "text/html"]
+        if links:
+            url = links[0]["href"]
     return {
-        'url': entry.id,
+        'url': url,
         'title': BeautifulSoup(entry.title, 'html.parser').get_text(),
         'summary': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
