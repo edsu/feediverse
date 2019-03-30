@@ -130,6 +130,7 @@ def get_entry(entry, generator=None):
         for t in tag['term'].split():
             hashtags.append('#' + t)
     summary = entry.get('summary', '')
+    content = entry.get('content', '')
     url = entry.id
     if generator == "wordpress":
         links = [l for l in entry.links if l.get("rel") == "alternate"]
@@ -141,6 +142,7 @@ def get_entry(entry, generator=None):
         'url': url,
         'title': BeautifulSoup(entry.title, 'html.parser').get_text(),
         'summary': BeautifulSoup(summary, 'html.parser').get_text(),
+        'content': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
         'images': collect_images(entry),
