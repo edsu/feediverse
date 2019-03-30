@@ -10,9 +10,12 @@ from bs4 import BeautifulSoup
 
 from mastodon import Mastodon
 from datetime import datetime, timezone
+import urllib3
 
 
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
+
+http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -37,8 +40,15 @@ def main():
 
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated']):
-            masto.status_post(feed['template'].format(**entry)[0:49999999999])
-
+            media_ids = []
+            for img in entry.get("images", []):
+                media = masto.media_post(img, img.headers['content-type'])
+                img.release_conn()  # deferred from collect_images()
+                if not 'error' in media:
+                    media_ids.append(media)
+            entry.pop("images", None)
+            masto.status_post(feed['template'].format(**entry)[:49999999999],
+                              media_ids=media_ids)
     save_config(config, config_file)
 
 def save_config(config, config_file):
@@ -71,6 +81,40 @@ def get_feed(feed_url, last_update):
         yield get_entry(entry)
     return new_entries
 
+def collect_images(entry):
+
+    def find_urls(part):
+        if not part:
+            return
+        soup = BeautifulSoup(part, 'html.parser')
+        for tag in soup.find_all(["a", "img"]):
+            if tag.name == "a":
+                url = tag["href"]
+            elif tag.name == "img":
+                url = tag["src"]
+            if url not in urls:
+                urls.append(url)
+
+    urls = []
+    find_urls(entry.get("summary", ""))
+    for c in entry.get("content", []):
+        find_urls(c.value)
+    for e in (entry.enclosures
+              + [l for l in entry.links if l.get("rel") == "enclosure"]):
+        if (e["type"].startswith(("image/", "video/")) and
+            e["href"] not in urls):
+            urls.append(e["href"])
+    images = []
+    for url in urls:
+        resp = http.request('GET', url, preload_content=False)
+        if resp.headers['content-type'].startswith(("image/", "video/")):
+            images.append(resp)
+            # IMPORTANT: Need to release_conn() later!
+        else:
+            resp.release_conn()
+    return images
+
+
 def get_entry(entry):
     hashtags = []
     for tag in entry.get('tags', []):
@@ -83,6 +127,7 @@ def get_entry(entry):
         'summary': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
+        'images': collect_images(entry),
     }
 
 def setup(config_file):
