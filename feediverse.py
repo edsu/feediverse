@@ -67,6 +67,14 @@ def read_config(config_file):
             config['updated'] = datetime.now(tz=timezone.utc)
     return config
 
+def detect_generator(feed):
+    # For RSS the generator tag holds the URL, while for ATOM it holds the name
+    if "/wordpress.org/" in feed.feed.generator:
+        return "wordpress"
+    elif "wordpress" == feed.feed.generator.lower():
+        return "wordpress"
+    return None
+
 def get_feed(feed_url, last_update):
     new_entries = 0
     feed = feedparser.parse(feed_url)
@@ -76,9 +84,10 @@ def get_feed(feed_url, last_update):
     else:
         entries = feed.entries
     entries.sort(key=lambda e: e.published_parsed)
+    generator = detect_generator(feed)
     for entry in entries:
         new_entries += 1
-        yield get_entry(entry)
+        yield get_entry(entry, generator)
     return new_entries
 
 def collect_images(entry):
@@ -115,7 +124,7 @@ def collect_images(entry):
     return images
 
 
-def get_entry(entry):
+def get_entry(entry, generator=None):
     hashtags = []
     for tag in entry.get('tags', []):
         for t in tag['term'].split():
