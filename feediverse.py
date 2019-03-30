@@ -123,6 +123,7 @@ def collect_images(entry, generator=None):
             e["href"] not in urls):
             urls.append(e["href"])
     if generator == "wordpress":
+        urls = (u for u in urls if not "/wp-content/plugins/" in u)
         # Work around a wordpress bug: If the filename contains an
         # umlaut, this will not be encoded using %-escape, as the
         # standard demands. This will break encoding in http.request()
