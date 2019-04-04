@@ -10,7 +10,7 @@ import feedparser
 from bs4 import BeautifulSoup
 
 from mastodon import Mastodon
-from datetime import datetime, timezone
+from datetime import datetime, timezone, MINYEAR
 import urllib3
 
 
@@ -73,7 +73,8 @@ def read_config(config_file):
         if 'updated' in config:
             config['updated'] = dateutil.parser.parse(config['updated'])
         else:
-            config['updated'] = datetime.now(tz=timezone.utc)
+            config['updated'] = datetime(MINYEAR, 1, 1,
+                                         0, 0, 0, 0, timezone.utc)
     return config
 
 def detect_generator(feed):
