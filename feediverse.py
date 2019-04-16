@@ -69,14 +69,14 @@ def save_config(config, config_file, toot_old_posts=False):
         fh.write(yaml.dump(copy, default_flow_style=False))
 
 def read_config(config_file):
-    config = {}
+    config = {
+        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc),
+    }
     with open(config_file) as fh:
-        config = yaml.load(fh, yaml.SafeLoader)
-        if 'updated' in config:
-            config['updated'] = dateutil.parser.parse(config['updated'])
-        else:
-            config['updated'] = datetime(MINYEAR, 1, 1,
-                                         0, 0, 0, 0, timezone.utc)
+        cfg = yaml.load(fh, yaml.SafeLoader)
+        if 'updated' in cfg:
+            cfg['updated'] = dateutil.parser.parse(cfg['updated'])
+    config.update(cfg)
     return config
 
 def detect_generator(feed):
