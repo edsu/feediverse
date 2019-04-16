@@ -15,6 +15,7 @@ import urllib3
 
 
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
+MAX_IMAGES = 4  # Mastodon allows attaching 4 images max.
 
 http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
 
@@ -136,6 +137,8 @@ def collect_images(entry, generator=None):
         if resp.headers['content-type'].startswith(("image/", "video/")):
             images.append(resp)
             # IMPORTANT: Need to release_conn() later!
+            if len(images) >= MAX_IMAGES:
+                break
         else:
             resp.release_conn()
     return images
