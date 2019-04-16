@@ -169,9 +169,14 @@ def get_entry(entry, generator=None):
     }
 
 def setup(config_file):
+
+    def yes_no(question):
+        res = input(question + ' [y/n] ')
+        return res.lower() in "y1"
+
     url = input('What is your Mastodon Instance URL? ')
-    have_app = input('Do you have your app credentials already? [y/n] ')
-    if have_app.lower() == 'y':
+    have_app = yes_no('Do you have your app credentials already?')
+    if have_app:
         name = 'feediverse'
         client_id = input('What is your app\'s client id: ')
         client_secret = input('What is your client secret: ')
