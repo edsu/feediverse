@@ -61,9 +61,10 @@ def main():
                               media_ids=media_ids)
     save_config(config, config_file)
 
-def save_config(config, config_file):
+def save_config(config, config_file, toot_old_posts=False):
     copy = dict(config)
-    copy['updated'] = datetime.now(tz=timezone.utc).isoformat()
+    if not toot_old_posts:
+        copy['updated'] = datetime.now(tz=timezone.utc).isoformat()
     with open(config_file, 'w') as fh:
         fh.write(yaml.dump(copy, default_flow_style=False))
 
@@ -196,6 +197,7 @@ def setup(config_file):
         access_token = m.log_in(username, password)
 
     feed_url = input('RSS/Atom feed URL to watch: ')
+    old_posts = yes_no('Shall already existing entries be tooted, too?')
     config = {
         'name': name,
         'url': url,
@@ -206,7 +208,7 @@ def setup(config_file):
             {'url': feed_url, 'template': '{title} {url}'}
         ]
     }
-    save_config(config, config_file)
+    save_config(config, config_file, old_posts)
     print("")
     print("Your feediverse configuration has been saved to {}".format(config_file))
     print("Add a line line this to your crontab to check every 15 minutes:")
