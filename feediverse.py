@@ -49,7 +49,8 @@ def main():
     )
 
     for feed in config['feeds']:
-        for entry in get_feed(feed['url'], config['updated']):
+        for entry in get_feed(feed['url'], config['updated'],
+                              config['include_images']):
             media_ids = []
             for img in entry.get("images", []):
                 media = masto.media_post(img, img.headers['content-type'])
@@ -71,6 +72,7 @@ def save_config(config, config_file, toot_old_posts=False):
 def read_config(config_file):
     config = {
         'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc),
+        'include_images': False,
     }
     with open(config_file) as fh:
         cfg = yaml.load(fh, yaml.SafeLoader)
@@ -87,7 +89,7 @@ def detect_generator(feed):
         return "wordpress"
     return None
 
-def get_feed(feed_url, last_update):
+def get_feed(feed_url, last_update, include_images):
     new_entries = 0
     feed = feedparser.parse(feed_url)
     if last_update:
@@ -99,7 +101,7 @@ def get_feed(feed_url, last_update):
     generator = detect_generator(feed)
     for entry in entries:
         new_entries += 1
-        yield get_entry(entry, generator)
+        yield get_entry(entry, include_images, generator)
     return new_entries
 
 def collect_images(entry, generator=None):
@@ -145,7 +147,7 @@ def collect_images(entry, generator=None):
     return images
 
 
-def get_entry(entry, generator=None):
+def get_entry(entry, include_images, generator=None):
     hashtags = []
     for tag in entry.get('tags', []):
         for t in tag['term'].split():
@@ -166,7 +168,7 @@ def get_entry(entry, generator=None):
         'content': BeautifulSoup(summary, 'html.parser').get_text(),
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
-        'images': collect_images(entry, generator),
+        'images': collect_images(entry, generator) if include_images else [],
     }
 
 def setup(config_file):
@@ -198,12 +200,14 @@ def setup(config_file):
 
     feed_url = input('RSS/Atom feed URL to watch: ')
     old_posts = yes_no('Shall already existing entries be tooted, too?')
+    include_images = yes_no('Shall images be included in the toot?')
     config = {
         'name': name,
         'url': url,
         'client_id': client_id,
         'client_secret': client_secret,
         'access_token': access_token,
+        'include_images': include_images,
         'feeds': [
             {'url': feed_url, 'template': '{title} {url}'}
         ]
