@@ -18,6 +18,9 @@ Once *feediverse* is configured you can add it to your crontab:
 
     */15 * * * * /usr/local/bin/feediverse    
 
+Run `feediverse --help` to show the comand line options.
+
+
 ## Post Format
 
 You can customize the post format by opening the configuration file (default is
