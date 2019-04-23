@@ -34,6 +34,11 @@ like so:
 `{hashtags}` will look for tags in the feed entry and turn them into a space
 separated list of hashtags.
 
+`{content}` is the whole content of the feed entry (with html-tags
+stripped). Please be aware that this might easily exceed Mastodon's
+limit of 512 characters.
+
+
 ## Multiple Feeds
 
 Since *feeds* is a list you can add additional feeds to watch if you want.
