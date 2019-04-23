@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from mastodon import Mastodon
 from datetime import datetime, timezone, MINYEAR
 import urllib3
+import re
 
 
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
@@ -164,6 +165,15 @@ def collect_images(entry, generator=None):
 
 
 def get_entry(entry, include_images, generator=None):
+
+    def cleanup(text):
+        text = BeautifulSoup(text, 'html.parser').get_text()
+        text = re.sub('\xa0+', ' ', text)
+        text = re.sub('  +', ' ', text)
+        text = re.sub(' +\n', '\n', text)
+        text = re.sub('\n\n\n+', '\n\n', text, flags=re.M)
+        return text.strip()
+
     hashtags = []
     for tag in entry.get('tags', []):
         for t in tag['term'].split():
@@ -171,7 +181,7 @@ def get_entry(entry, include_images, generator=None):
     summary = entry.get('summary', '')
     content = entry.get('content', '') or ''
     if content:
-        content = content[0].get('value', '')
+        content = cleanup(content[0].get('value', ''))
     url = entry.id
     if generator == "wordpress":
         links = [l for l in entry.links if l.get("rel") == "alternate"]
@@ -181,9 +191,9 @@ def get_entry(entry, include_images, generator=None):
             url = links[0]["href"]
     return {
         'url': url,
-        'title': BeautifulSoup(entry.title, 'html.parser').get_text(),
-        'summary': BeautifulSoup(summary, 'html.parser').get_text(),
-        'content': BeautifulSoup(content, 'html.parser').get_text(),
+        'title': cleanup(entry.title),
+        'summary': cleanup(summary),
+        'content': content,
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
         'images': collect_images(entry, generator) if include_images else [],
