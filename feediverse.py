@@ -29,6 +29,9 @@ codecs.register_error("urlencodereplace", __urlencodereplace_errors)
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-n", "--dry-run", action="store_true",
+                        help=("perform a trial run with no changes made: "
+                              "don't toot, don't save config"))
     parser.add_argument("config_file", nargs="?", metavar="CONFIG-FILE",
                         help=("config file to use, default: %s" %
                               DEFAULT_CONFIG_FILE),
@@ -51,6 +54,9 @@ def main():
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated'],
                               config['include_images']):
+            if args.dry_run:
+                print("trial run, not tooting")
+                continue
             media_ids = []
             for img in entry.get("images", []):
                 media = masto.media_post(img, img.headers['content-type'])
@@ -60,7 +66,11 @@ def main():
             entry.pop("images", None)
             masto.status_post(feed['template'].format(**entry)[:49999999999],
                               media_ids=media_ids)
-    save_config(config, config_file)
+    if args.dry_run:
+        print("trial run, not saving the config")
+    else:
+        save_config(config, config_file)
+
 
 def save_config(config, config_file, toot_old_posts=False):
     copy = dict(config)
