@@ -32,6 +32,8 @@ def main():
     parser.add_argument("-n", "--dry-run", action="store_true",
                         help=("perform a trial run with no changes made: "
                               "don't toot, don't save config"))
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="be verbose")
     parser.add_argument("config_file", nargs="?", metavar="CONFIG-FILE",
                         help=("config file to use, default: %s" %
                               DEFAULT_CONFIG_FILE),
@@ -54,6 +56,8 @@ def main():
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated'],
                               config['include_images']):
+            if args.verbose:
+                print(entry)
             if args.dry_run:
                 print("trial run, not tooting")
                 continue
@@ -69,6 +73,8 @@ def main():
     if args.dry_run:
         print("trial run, not saving the config")
     else:
+        if args.verbose:
+            print("saving the config")
         save_config(config, config_file)
 
 
