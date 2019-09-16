@@ -59,7 +59,13 @@ def main():
                               config['include_images'],
                               generator=feed.get('generator')):
             if args.verbose:
-                print(entry)
+                try:
+                    print(entry)
+                except UnicodeEncodeError:
+                    # work-around for non-unicode terminals
+                    print(dict(
+                        (k, v.encode("utf-8") if hasattr(v, "encode") else v)
+                        for k, v in entry.items()))
             if args.dry_run:
                 print("trial run, not tooting")
                 continue
