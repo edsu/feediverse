@@ -56,7 +56,8 @@ def main():
 
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated'],
-                              config['include_images']):
+                              config['include_images'],
+                              generator=feed.get('generator')):
             if args.verbose:
                 print(entry)
             if args.dry_run:
@@ -107,7 +108,7 @@ def detect_generator(feed):
         return "wordpress"
     return None
 
-def get_feed(feed_url, last_update, include_images):
+def get_feed(feed_url, last_update, include_images, generator=None):
     new_entries = 0
     feed = feedparser.parse(feed_url)
     if last_update:
@@ -116,7 +117,7 @@ def get_feed(feed_url, last_update, include_images):
     else:
         entries = feed.entries
     entries.sort(key=lambda e: e.published_parsed)
-    generator = detect_generator(feed)
+    generator = generator or detect_generator(feed)
     for entry in entries:
         new_entries += 1
         yield get_entry(entry, include_images, generator)
@@ -198,6 +199,7 @@ def get_entry(entry, include_images, generator=None):
         'hashtags': ' '.join(hashtags),
         'updated': dateutil.parser.parse(entry['updated']),
         'images': collect_images(entry, generator) if include_images else [],
+        '__generator__': generator,
     }
 
 def setup(config_file):

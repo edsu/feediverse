@@ -52,6 +52,7 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
         template: "dot com: {title} {url}"
       - url: https://example.org/feed/
         template: "dot org: {title} {url}"
+        generator: wordpress
 
 
 ## Special Handling for Different Feed Generators
@@ -59,6 +60,14 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
 *feediverse* has support for some special cases of some feed
 generators. For example detecting the entries perma-link. Currently
 only Wordpress is handled, but others may follow.
+
+If a feed does not provide a proper *generator* entry, you can set it
+by adding a `generator:` value to the feed's configuration. See the
+seconds one in the example above.
+
+You can check whether feed provides a *generator* entry like this:
+
+  feediverse --verbose --dry-run feedverse-test.rc | grep generator
 
 
 ## Why?
