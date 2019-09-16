@@ -53,6 +53,14 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
       - url: https://example.org/feed/
         template: "dot org: {title} {url}"
 
+
+## Special Handling for Different Feed Generators
+
+*feediverse* has support for some special cases of some feed
+generators. For example detecting the entries perma-link. Currently
+only Wordpress is handled, but others may follow.
+
+
 ## Why?
 
 I created *feediverse* because I wanted to send my Pinboard bookmarks to
