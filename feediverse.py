@@ -100,9 +100,10 @@ def read_config(config_file):
 
 def detect_generator(feed):
     # For RSS the generator tag holds the URL, while for ATOM it holds the name
-    if "/wordpress.org/" in feed.feed.generator:
+    generator = feed.feed.get("generator", "")
+    if "/wordpress.org/" in generator:
         return "wordpress"
-    elif "wordpress" == feed.feed.generator.lower():
+    elif "wordpress" == generator.lower():
         return "wordpress"
     return None
 
