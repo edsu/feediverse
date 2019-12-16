@@ -45,7 +45,7 @@ def save_config(config, config_file):
 def read_config(config_file):
     config = {}
     with open(config_file) as fh:
-        config = yaml.load(fh)
+        config = yaml.safe_load(fh)
         if 'updated' in config:
             config['updated'] = dateutil.parser.parse(config['updated'])
         else:
