@@ -65,8 +65,8 @@ def get_feed(feed_url, last_update):
 def get_entry(entry):
     hashtags = []
     for tag in entry.get('tags', []):
-        for t in tag['term'].split(' '):
-            hashtags.append('#{}'.format(t))
+        t = tag['term'].replace(' ', '_')
+        hashtags.append('#{}'.format(t))
     return {
         'url': entry.id,
         'title': entry.title,
