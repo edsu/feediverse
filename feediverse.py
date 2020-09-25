@@ -175,7 +175,11 @@ def collect_images(entry, generator=None):
 def get_entry(entry, include_images, generator=None):
 
     def cleanup(text):
-        text = BeautifulSoup(text, 'html.parser').get_text()
+        html = BeautifulSoup(text, 'html.parser')
+        # Remove all elements of class read-more or read-more-*
+        for more in html.find_all(None, re.compile("^read-more($|-.*)")):
+            more.extract()
+        text = html.get_text()
         text = re.sub('\xa0+', ' ', text)
         text = re.sub('  +', ' ', text)
         text = re.sub(' +\n', '\n', text)
