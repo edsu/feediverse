@@ -54,10 +54,12 @@ def main():
         access_token=config['access_token']
     )
 
+    newest_post = config['updated']
     for feed in config['feeds']:
         for entry in get_feed(feed['url'], config['updated'],
                               config['include_images'],
                               generator=feed.get('generator')):
+            newest_post = max(newest_post, entry['updated'])
             if args.verbose:
                 try:
                     print(entry)
@@ -78,6 +80,8 @@ def main():
             entry.pop("images", None)
             masto.status_post(feed['template'].format(**entry)[:49999999999],
                               media_ids=media_ids)
+
+    config['updated'] = newest_post.isoformat()
     if args.dry_run:
         print("trial run, not saving the config")
     else:
@@ -86,10 +90,8 @@ def main():
         save_config(config, config_file)
 
 
-def save_config(config, config_file, toot_old_posts=False):
+def save_config(config, config_file):
     copy = dict(config)
-    if not toot_old_posts:
-        copy['updated'] = datetime.now(tz=timezone.utc).isoformat()
     with open(config_file, 'w') as fh:
         fh.write(yaml.dump(copy, default_flow_style=False))
 
@@ -253,7 +255,9 @@ def setup(config_file):
             {'url': feed_url, 'template': '{title} {url}'}
         ]
     }
-    save_config(config, config_file, old_posts)
+    if not toot_old_posts:
+        config['updated'] = datetime.now(tz=timezone.utc).isoformat()
+    save_config(config, config_file)
     print("")
     print("Your feediverse configuration has been saved to {}".format(config_file))
     print("Add a line line this to your crontab to check every 15 minutes:")
