@@ -67,7 +67,7 @@ def main():
                         (k, v.encode("utf-8") if hasattr(v, "encode") else v)
                         for k, v in entry.items()))
             if args.dry_run:
-                print("trial run, not tooting")
+                print("trial run, not tooting ", entry["title"][:50])
                 continue
             media_ids = []
             for img in entry.get("images", []):
