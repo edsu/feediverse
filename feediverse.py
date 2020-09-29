@@ -80,7 +80,7 @@ def main():
                 if not 'error' in media:
                     media_ids.append(media)
             entry.pop("images", None)
-            masto.status_post(feed['template'].format(**entry)[:49999999999],
+            masto.status_post(feed['template'].format(**entry)[:499],
                               media_ids=media_ids)
 
     config['updated'] = newest_post.isoformat()
