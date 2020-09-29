@@ -191,8 +191,8 @@ def get_entry(entry, include_images, generator=None):
 
     hashtags = []
     for tag in entry.get('tags', []):
-        for t in tag['term'].split():
-            hashtags.append('#' + t)
+        t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
+        hashtags.append('#{}'.format(t))
     summary = entry.get('summary', '')
     content = entry.get('content', '') or ''
     if content:
@@ -204,6 +204,10 @@ def get_entry(entry, include_images, generator=None):
             links = [l for l in entry.links if l.get("type") == "text/html"]
         if links:
             url = links[0]["href"]
+=======
+        t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
+        hashtags.append('#{}'.format(t))
+>>>>>>> steinarb/fix-space-in-hashtags
     return {
         'url': url,
         'link': entry.link,
