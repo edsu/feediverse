@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
+import yaml
 import codecs
 import argparse
-import yaml
+import urllib3
 import dateutil
 import feedparser
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
 from mastodon import Mastodon
 from datetime import datetime, timezone, MINYEAR
-import urllib3
-import re
 
 
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
@@ -204,10 +204,8 @@ def get_entry(entry, include_images, generator=None):
             links = [l for l in entry.links if l.get("type") == "text/html"]
         if links:
             url = links[0]["href"]
-=======
         t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
         hashtags.append('#{}'.format(t))
->>>>>>> steinarb/fix-space-in-hashtags
     return {
         'url': url,
         'link': entry.link,
