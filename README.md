@@ -1,6 +1,6 @@
 *feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts.
 Please use responsibly! *feediverse* is kind of the same thing as [feed2toot]
-but it's just one module that works with Python 3 ... and I was bored.
+but it's just one module that works with Python 3, and I was bored.
 
 ## Install
 
@@ -67,8 +67,7 @@ seconds one in the example above.
 
 You can check whether feed provides a *generator* entry like this:
 
-  feediverse --verbose --dry-run feedverse-test.rc | grep generator
-
+    feediverse --verbose --dry-run feedverse-test.rc | grep generator
 
 ## Why?
 
@@ -79,11 +78,10 @@ work with any RSS or Atom feed (thanks to [feedparser]).
 
 ## Warning!
 
-Please be responsible. Don't fill up Mastodon with tons of junk just because you
-can. That kind of toxic behavior is why a lot of people are trying to establish
-other forms of social media like Mastodon.
+Please use responsibly. Don't fill up Mastodon with tons of junk just because
+you can. That kind of toxic behavior is why a lot of people are trying to
+establish other forms of social media like Mastodon.
 
 [feed2toot]: https://gitlab.com/chaica/feed2toot/
 [feedparser]: http://feedparser.org/
-
 
