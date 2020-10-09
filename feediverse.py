@@ -125,7 +125,7 @@ def get_feed(feed_url, last_update, include_images, generator=None):
                    if dateutil.parser.parse(e['updated']) > last_update]
     else:
         entries = feed.entries
-    entries.sort(key=lambda e: e.published_parsed)
+    entries.sort(key=lambda e: e.updated_parsed)
     generator = generator or detect_generator(feed)
     for entry in entries:
         new_entries += 1
