@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import yaml
+import certifi
 import codecs
 import argparse
 import urllib3
@@ -18,7 +19,8 @@ from datetime import datetime, timezone, MINYEAR
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
 MAX_IMAGES = 4  # Mastodon allows attaching 4 images max.
 
-http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
+http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',
+                           ca_certs=certifi.where(),)
 
 # encoding error-handler for buggy wordpress urls
 def __urlencodereplace_errors(exc):
