@@ -164,14 +164,18 @@ def collect_images(entry, generator=None):
                 for u in urls)
     images = []
     for url in urls:
-        resp = http.request('GET', url, preload_content=False)
-        if resp.headers['content-type'].startswith(("image/", "video/")):
-            images.append(resp)
-            # IMPORTANT: Need to release_conn() later!
-            if len(images) >= MAX_IMAGES:
-                break
-        else:
-            resp.release_conn()
+        try:
+            resp = http.request('GET', url, preload_content=False)
+            if resp.headers['content-type'].startswith(("image/", "video/")):
+                images.append(resp)
+                # IMPORTANT: Need to release_conn() later!
+                if len(images) >= MAX_IMAGES:
+                    break
+            else:
+                resp.release_conn()
+        except urllib3.exceptions.HTTPError:
+            # ignore http errors, maybe they should be logged?
+            pass
     return images
 
 
