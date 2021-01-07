@@ -28,8 +28,6 @@ def __urlencodereplace_errors(exc):
 codecs.register_error("urlencodereplace", __urlencodereplace_errors)
 
 
-DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--dry-run", action="store_true",
@@ -37,12 +35,15 @@ def main():
                               "don't toot, don't save config"))
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="be verbose")
-    parser.add_argument("config_file", nargs="?", metavar="CONFIG-FILE",
-                        help=("config file to use, default: %s" %
-                              DEFAULT_CONFIG_FILE),
+    parser.add_argument("-c", "--config",
+                        help="config file to use",
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
+
     args = parser.parse_args()
-    config_file = args.config_file
+    config_file = args.config
+
+    if args.verbose:
+        print("using config file", config_file)
 
     if not os.path.isfile(config_file):
         setup(config_file)        
@@ -88,7 +89,7 @@ def main():
         print("trial run, not saving the config")
     else:
         if args.verbose:
-            print("saving the config")
+            print("saving the config", config_file)
         save_config(config, config_file)
 
 def save_config(config, config_file):
@@ -140,10 +141,10 @@ def collect_images(entry, generator=None):
         soup = BeautifulSoup(part, 'html.parser')
         for tag in soup.find_all(["a", "img"]):
             if tag.name == "a":
-                url = tag["href"]
+                url = tag.get("href")
             elif tag.name == "img":
-                url = tag["src"]
-            if url not in urls:
+                url = tag.get("src")
+            if url and url not in urls:
                 urls.append(url)
 
     urls = []
