@@ -151,8 +151,8 @@ def collect_images(entry, generator=None):
     find_urls(entry.get("summary", ""))
     for c in entry.get("content", []):
         find_urls(c.value)
-    for e in (entry.enclosures
-              + [l for l in entry.links if l.get("rel") == "enclosure"]):
+    for e in (entry.get("enclosures", [])
+              + [l for l in entry.get("links", []) if l.get("rel") == "enclosure"]):
         if (e["type"].startswith(("image/", "video/")) and
             e["href"] not in urls):
             urls.append(e["href"])
@@ -204,9 +204,9 @@ def get_entry(entry, include_images, generator=None):
         content = cleanup(content[0].get('value', ''))
     url = entry.id
     if generator == "wordpress":
-        links = [l for l in entry.links if l.get("rel") == "alternate"]
+        links = [l for l in entry.get("links", []) if l.get("rel") == "alternate"]
         if len(links) > 1:
-            links = [l for l in entry.links if l.get("type") == "text/html"]
+            links = [l for l in entry.get("links", []) if l.get("type") == "text/html"]
         if links:
             url = links[0]["href"]
         t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
