@@ -7,6 +7,7 @@ import yaml
 import certifi
 import codecs
 import argparse
+import pprint
 import urllib3
 import dateutil
 import feedparser
@@ -67,10 +68,10 @@ def main():
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
                 try:
-                    print(entry)
+                    pprint.pprint(entry)
                 except UnicodeEncodeError:
                     # work-around for non-unicode terminals
-                    print(dict(
+                    pprint.pprint(dict(
                         (k, v.encode("utf-8") if hasattr(v, "encode") else v)
                         for k, v in entry.items()))
             if args.dry_run:
