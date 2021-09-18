@@ -167,7 +167,7 @@ def collect_images(entry, generator=None):
     for url in urls:
         try:
             resp = http.request('GET', url, preload_content=False)
-            if resp.headers['content-type'].startswith(("image/", "video/")):
+            if resp.headers.get('content-type', '').startswith(("image/", "video/")):
                 images.append(resp)
                 # IMPORTANT: Need to release_conn() later!
                 if len(images) >= MAX_IMAGES:
