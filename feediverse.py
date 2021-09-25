@@ -59,6 +59,8 @@ def main():
 
     newest_post = config['updated']
     for feed in config['feeds']:
+        if args.verbose:
+            print(f"fetching {feed['url']} entries since {config['updated']}")
         for entry in get_feed(feed['url'], config['updated'],
                               config['include_images'],
                               generator=feed.get('generator')):
