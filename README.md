@@ -1,6 +1,4 @@
-*feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts.
-Please use responsibly! *feediverse* is kind of the same thing as [feed2toot]
-but it's just one module that works with Python 3, and I was bored.
+*feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts. Please use responsibly! *feediverse* is kind of the same thing as [feed2toot] or [rss-to-activitypub](https://github.com/dariusk/rss-to-activitypub/) but it's just one module that works with Python 3, and I was bored.
 
 ## Install
 
