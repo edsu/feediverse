@@ -4,8 +4,10 @@ import os
 import re
 import sys
 import yaml
+import certifi
 import codecs
 import argparse
+import pprint
 import urllib3
 import dateutil
 import feedparser
@@ -18,7 +20,8 @@ from datetime import datetime, timezone, MINYEAR
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
 MAX_IMAGES = 4  # Mastodon allows attaching 4 images max.
 
-http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
+http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',
+                           ca_certs=certifi.where(),)
 
 # encoding error-handler for buggy wordpress urls
 def __urlencodereplace_errors(exc):
@@ -67,14 +70,19 @@ def main():
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
                 try:
-                    print(entry)
+                    pprint.pprint(entry)
                 except UnicodeEncodeError:
                     # work-around for non-unicode terminals
-                    print(dict(
+                    pprint.pprint(dict(
                         (k, v.encode("utf-8") if hasattr(v, "encode") else v)
                         for k, v in entry.items()))
             if args.dry_run:
-                print("trial run, not tooting ", entry["title"][:50])
+                try:
+                    print("trial run, not tooting", entry["title"][:50])
+                except UnicodeEncodeError:
+                    # work-around for non-unicode terminals
+                    print("trial run, not tooting",
+                          entry["title"][:50].encode("utf-8"))
                 continue
             media_ids = []
             for img in entry.get("images", []):

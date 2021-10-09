@@ -19,6 +19,7 @@ setup(
                       'mastodon.py',
                       'python-dateutil',
                       'pyyaml',
+                      'certifi',
                       'urllib3[secure]'],
     entry_points={'console_scripts': ['feediverse = feediverse:main']}
 )
