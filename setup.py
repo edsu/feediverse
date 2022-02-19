@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name='feediverse',
-    version='0.2.2',
+    version='0.3.0',
     python_requires='>=3.3',
     url='https://github.com/edsu/feediverse',
     author='Ed Summers',
@@ -18,7 +18,6 @@ setup(
                       'feedparser',
                       'mastodon.py',
                       'python-dateutil',
-                      'pyyaml',
-                      'urllib3[secure]'],
+                      'pyyaml'],
     entry_points={'console_scripts': ['feediverse = feediverse:main']}
 )

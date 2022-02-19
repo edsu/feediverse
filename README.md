@@ -1,4 +1,6 @@
-*feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts. Please use responsibly! *feediverse* is kind of the same thing as [feed2toot] or [rss-to-activitypub](https://github.com/dariusk/rss-to-activitypub/) but it's just one module that works with Python 3, and I was bored.
+*feediverse* will read RSS/Atom feeds and send the messages as Mastodon posts.
+It's meant to add a little bit of spice to your timeline from other places.
+Please use it responsibly.
 
 ## Install
 
@@ -17,7 +19,6 @@ Once *feediverse* is configured you can add it to your crontab:
     */15 * * * * /usr/local/bin/feediverse    
 
 Run `feediverse --help` to show the command line options.
-
 
 ## Post Format
 
@@ -39,7 +40,6 @@ separated list of hashtags. For some feeds (e.g. youtube-rss) you should use `{l
 stripped). Please be aware that this might easily exceed Mastodon's
 limit of 512 characters.
 
-
 ## Multiple Feeds
 
 Since *feeds* is a list you can add additional feeds to watch if you want.
@@ -50,36 +50,4 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
         template: "dot com: {title} {url}"
       - url: https://example.org/feed/
         template: "dot org: {title} {url}"
-        generator: wordpress
-
-
-## Special Handling for Different Feed Generators
-
-*feediverse* has support for some special cases of some feed
-generators. For example detecting the entries perma-link. Currently
-only Wordpress is handled, but others may follow.
-
-If a feed does not provide a proper *generator* entry, you can set it
-by adding a `generator:` value to the feed's configuration. See the
-seconds one in the example above.
-
-You can check whether feed provides a *generator* entry like this:
-
-    feediverse --verbose --dry-run feedverse-test.rc | grep generator
-
-## Why?
-
-I created *feediverse* because I wanted to send my Pinboard bookmarks to
-Mastodon.  I've got an IFTTT recipe that does this for Twitter, but IFTTT
-doesn't appear to work with Mastodon yet. That being said *feediverse* should
-work with any RSS or Atom feed (thanks to [feedparser]).
-
-## Warning!
-
-Please use responsibly. Don't fill up Mastodon with tons of junk just because
-you can. That kind of toxic behavior is why a lot of people are trying to
-establish other forms of social media like Mastodon.
-
-[feed2toot]: https://gitlab.com/chaica/feed2toot/
-[feedparser]: http://feedparser.org/
 

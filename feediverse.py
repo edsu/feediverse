@@ -4,9 +4,7 @@ import os
 import re
 import sys
 import yaml
-import codecs
 import argparse
-import urllib3
 import dateutil
 import feedparser
 
@@ -14,19 +12,7 @@ from bs4 import BeautifulSoup
 from mastodon import Mastodon
 from datetime import datetime, timezone, MINYEAR
 
-
 DEFAULT_CONFIG_FILE = os.path.join("~", ".feediverse")
-MAX_IMAGES = 4  # Mastodon allows attaching 4 images max.
-
-http = urllib3.PoolManager(cert_reqs='CERT_REQUIRED',)
-
-# encoding error-handler for buggy wordpress urls
-def __urlencodereplace_errors(exc):
-    bs = exc.object[exc.start:exc.end].encode("utf-8")
-    bs = b"".join(b'%%%X' % b for b in bs)
-    return (bs, exc.end)
-codecs.register_error("urlencodereplace", __urlencodereplace_errors)
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -61,67 +47,20 @@ def main():
     for feed in config['feeds']:
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
-        for entry in get_feed(feed['url'], config['updated'],
-                              config['include_images'],
-                              generator=feed.get('generator')):
+        for entry in get_feed(feed['url'], config['updated']):
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
-                try:
-                    print(entry)
-                except UnicodeEncodeError:
-                    # work-around for non-unicode terminals
-                    print(dict(
-                        (k, v.encode("utf-8") if hasattr(v, "encode") else v)
-                        for k, v in entry.items()))
+                print(entry)
             if args.dry_run:
                 print("trial run, not tooting ", entry["title"][:50])
                 continue
-            media_ids = []
-            for img in entry.get("images", []):
-                media = masto.media_post(img, img.headers['content-type'])
-                img.release_conn()  # deferred from collect_images()
-                if not 'error' in media:
-                    media_ids.append(media)
-            entry.pop("images", None)
-            masto.status_post(feed['template'].format(**entry)[:499],
-                              media_ids=media_ids)
+            masto.status_post(feed['template'].format(**entry)[:499])
 
-    config['updated'] = newest_post.isoformat()
-    if args.dry_run:
-        print("trial run, not saving the config")
-    else:
-        if args.verbose:
-            print("saving the config", config_file)
+    if not args.dry_run:
+        config['updated'] = newest_post.isoformat()
         save_config(config, config_file)
 
-def save_config(config, config_file):
-    copy = dict(config)
-    with open(config_file, 'w') as fh:
-        fh.write(yaml.dump(copy, default_flow_style=False))
-
-def read_config(config_file):
-    config = {
-        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc),
-        'include_images': False,
-    }
-    with open(config_file) as fh:
-        cfg = yaml.load(fh, yaml.SafeLoader)
-        if 'updated' in cfg:
-            cfg['updated'] = dateutil.parser.parse(cfg['updated'])
-    config.update(cfg)
-    return config
-
-def detect_generator(feed):
-    # For RSS the generator tag holds the URL, while for ATOM it holds the name
-    generator = feed.feed.get("generator", "")
-    if "/wordpress.org/" in generator:
-        return "wordpress"
-    elif "wordpress" == generator.lower():
-        return "wordpress"
-    return None
-
-def get_feed(feed_url, last_update, include_images, generator=None):
-    new_entries = 0
+def get_feed(feed_url, last_update):
     feed = feedparser.parse(feed_url)
     if last_update:
         entries = [e for e in feed.entries
@@ -129,73 +68,10 @@ def get_feed(feed_url, last_update, include_images, generator=None):
     else:
         entries = feed.entries
     entries.sort(key=lambda e: e.updated_parsed)
-    generator = generator or detect_generator(feed)
     for entry in entries:
-        new_entries += 1
-        yield get_entry(entry, include_images, generator)
-    return new_entries
+        yield get_entry(entry)
 
-def collect_images(entry, generator=None):
-
-    def find_urls(part):
-        if not part:
-            return
-        soup = BeautifulSoup(part, 'html.parser')
-        for tag in soup.find_all(["a", "img"]):
-            if tag.name == "a":
-                url = tag.get("href")
-            elif tag.name == "img":
-                url = tag.get("src")
-            if url and url not in urls:
-                urls.append(url)
-
-    urls = []
-    find_urls(entry.get("summary", ""))
-    for c in entry.get("content", []):
-        find_urls(c.value)
-    for e in (entry.enclosures
-              + [l for l in entry.links if l.get("rel") == "enclosure"]):
-        if (e["type"].startswith(("image/", "video/")) and
-            e["href"] not in urls):
-            urls.append(e["href"])
-    if generator == "wordpress":
-        urls = (u for u in urls if not "/wp-content/plugins/" in u)
-        # Work around a wordpress bug: If the filename contains an
-        # umlaut, this will not be encoded using %-escape, as the
-        # standard demands. This will break encoding in http.request()
-        urls = (u.encode("ascii", "urlencodereplace").decode()
-                for u in urls)
-    images = []
-    for url in urls:
-        try:
-            resp = http.request('GET', url, preload_content=False)
-            if resp.headers.get('content-type', '').startswith(("image/", "video/")):
-                images.append(resp)
-                # IMPORTANT: Need to release_conn() later!
-                if len(images) >= MAX_IMAGES:
-                    break
-            else:
-                resp.release_conn()
-        except urllib3.exceptions.HTTPError:
-            # ignore http errors, maybe they should be logged?
-            pass
-    return images
-
-
-def get_entry(entry, include_images, generator=None):
-
-    def cleanup(text):
-        html = BeautifulSoup(text, 'html.parser')
-        # Remove all elements of class read-more or read-more-*
-        for more in html.find_all(None, re.compile("^read-more($|-.*)")):
-            more.extract()
-        text = html.get_text()
-        text = re.sub('\xa0+', ' ', text)
-        text = re.sub('  +', ' ', text)
-        text = re.sub(' +\n', '\n', text)
-        text = re.sub('\n\n\n+', '\n\n', text, flags=re.M)
-        return text.strip()
-
+def get_entry(entry):
     hashtags = []
     for tag in entry.get('tags', []):
         t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
@@ -205,14 +81,6 @@ def get_entry(entry, include_images, generator=None):
     if content:
         content = cleanup(content[0].get('value', ''))
     url = entry.id
-    if generator == "wordpress":
-        links = [l for l in entry.links if l.get("rel") == "alternate"]
-        if len(links) > 1:
-            links = [l for l in entry.links if l.get("type") == "text/html"]
-        if links:
-            url = links[0]["href"]
-        t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
-        hashtags.append('#{}'.format(t))
     return {
         'url': url,
         'link': entry.link,
@@ -220,17 +88,53 @@ def get_entry(entry, include_images, generator=None):
         'summary': cleanup(summary),
         'content': content,
         'hashtags': ' '.join(hashtags),
-        'updated': dateutil.parser.parse(entry['updated']),
-        'images': collect_images(entry, generator) if include_images else [],
-        '__generator__': generator,
+        'updated': dateutil.parser.parse(entry['updated'])
     }
 
+def cleanup(text):
+    html = BeautifulSoup(text, 'html.parser')
+    text = html.get_text()
+    text = re.sub('\xa0+', ' ', text)
+    text = re.sub('  +', ' ', text)
+    text = re.sub(' +\n', '\n', text)
+    text = re.sub('\n\n\n+', '\n\n', text, flags=re.M)
+    return text.strip()
+
+def find_urls(html):
+    if not html:
+        return
+    urls = []
+    soup = BeautifulSoup(html, 'html.parser')
+    for tag in soup.find_all(["a", "img"]):
+        if tag.name == "a":
+            url = tag.get("href")
+        elif tag.name == "img":
+            url = tag.get("src")
+        if url and url not in urls:
+            urls.append(url)
+    return urls
+
+def yes_no(question):
+    res = input(question + ' [y/n] ')
+    return res.lower() in "y1"
+
+def save_config(config, config_file):
+    copy = dict(config)
+    with open(config_file, 'w') as fh:
+        fh.write(yaml.dump(copy, default_flow_style=False))
+
+def read_config(config_file):
+    config = {
+        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc)
+    }
+    with open(config_file) as fh:
+        cfg = yaml.load(fh, yaml.SafeLoader)
+        if 'updated' in cfg:
+            cfg['updated'] = dateutil.parser.parse(cfg['updated'])
+    config.update(cfg)
+    return config
+
 def setup(config_file):
-
-    def yes_no(question):
-        res = input(question + ' [y/n] ')
-        return res.lower() in "y1"
-
     url = input('What is your Mastodon Instance URL? ')
     have_app = yes_no('Do you have your app credentials already?')
     if have_app:
@@ -254,14 +158,12 @@ def setup(config_file):
 
     feed_url = input('RSS/Atom feed URL to watch: ')
     old_posts = yes_no('Shall already existing entries be tooted, too?')
-    include_images = yes_no('Shall images be included in the toot?')
     config = {
         'name': name,
         'url': url,
         'client_id': client_id,
         'client_secret': client_secret,
         'access_token': access_token,
-        'include_images': include_images,
         'feeds': [
             {'url': feed_url, 'template': '{title} {url}'}
         ]
