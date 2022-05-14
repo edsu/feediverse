@@ -32,7 +32,7 @@ def main():
         print("using config file", config_file)
 
     if not os.path.isfile(config_file):
-        setup(config_file)        
+        setup(config_file)
 
     config = read_config(config_file)
 
@@ -62,11 +62,16 @@ def main():
 
 def get_feed(feed_url, last_update):
     feed = feedparser.parse(feed_url)
+    # RSS feeds can contain future dates that we don't want to post yet,
+    # so we filter them out
+    now = datetime.now(timezone.utc)
+    entries = [e for e in feed.entries
+               if dateutil.parser.parse(e['updated']) <= now]
+    # Now we can filter for date normally
     if last_update:
-        entries = [e for e in feed.entries
+        entries = [e for e in entries
                    if dateutil.parser.parse(e['updated']) > last_update]
-    else:
-        entries = feed.entries
+
     entries.sort(key=lambda e: e.updated_parsed)
     for entry in entries:
         yield get_entry(entry)
@@ -144,7 +149,7 @@ def setup(config_file):
         access_token = input('access_token: ')
     else:
         print("Ok, I'll need a few things in order to get your access token")
-        name = input('app name (e.g. feediverse): ') 
+        name = input('app name (e.g. feediverse): ')
         client_id, client_secret = Mastodon.create_app(
             api_base_url=url,
             client_name=name,
