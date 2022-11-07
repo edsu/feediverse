@@ -76,6 +76,7 @@ def get_entry(entry):
     for tag in entry.get('tags', []):
         t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
         hashtags.append('#{}'.format(t))
+    author = entry.get('author', '')
     summary = entry.get('summary', '')
     content = entry.get('content', '') or ''
     if content:
@@ -85,6 +86,7 @@ def get_entry(entry):
         'url': url,
         'link': entry.link,
         'title': cleanup(entry.title),
+        'author': author,
         'summary': cleanup(summary),
         'content': content,
         'hashtags': ' '.join(hashtags),
