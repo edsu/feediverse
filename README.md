@@ -51,3 +51,8 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
       - url: https://example.org/feed/
         template: "dot org: {title} {url}"
 
+## Custom Headers
+
+if you want to include own headers you can place `custom_http_headers` in your config:
+
+    custom_http_headers: 'header1: value1, header1: value2'
