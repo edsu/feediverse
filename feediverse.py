@@ -48,7 +48,7 @@ def main():
     try:
         config['custom_http_headers']
     except:
-         http_headers='user_agent: feediverse'
+        http_headers='user_agent: feediverse'
     else:
         http_headers='user_agent: feediverse, ' + config['custom_http_headers']
 
