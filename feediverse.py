@@ -44,13 +44,15 @@ def main():
     )
 
     newest_post = config['updated']
+
+    try:
+        config['custom_http_headers']
+    except:
+         http_headers='user_agent: feediverse'
+    else:
+        http_headers='user_agent: feediverse, ' + config['custom_http_headers']
+
     for feed in config['feeds']:
-        try:
-            config['custom_http_headers']
-        except:
-            http_headers='user_agent: feediverse'
-        else:
-            http_headers='user_agent: feediverse, ' + config['custom_http_headers']
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
         for entry in get_feed(feed['url'], config['updated'], http_headers):
