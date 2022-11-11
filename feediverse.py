@@ -7,6 +7,8 @@ import yaml
 import argparse
 import dateutil
 import feedparser
+import random
+import time
 
 from bs4 import BeautifulSoup
 from mastodon import Mastodon
@@ -24,6 +26,8 @@ def main():
     parser.add_argument("-c", "--config",
                         help="config file to use",
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
+    parser.add_argument("-d", "--delay", action="store_true",
+                        help="delay randomly from 10 to 30 seconds between each post")
 
     args = parser.parse_args()
     config_file = args.config
@@ -53,8 +57,12 @@ def main():
                 print(entry)
             if args.dry_run:
                 print("trial run, not tooting ", entry["title"][:50])
-                continue
-            masto.status_post(feed['template'].format(**entry)[:499])
+            if not args.dry_run:
+                masto.status_post(feed['template'].format(**entry)[:499])
+            if args.delay:
+                delay = random.randrange(10,30)
+                print("Delaying..." + str(delay) + " seconds...")
+                time.sleep(delay)
 
     if not args.dry_run:
         config['updated'] = newest_post.isoformat()
