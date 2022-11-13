@@ -56,7 +56,7 @@ def main():
 
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
-            print("HTTP headers: {config['custom_http_headers']}")
+            print("HTTP headers: {http_headers}")
         for entry in get_feed(feed['url'], config['updated'], http_headers):
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
