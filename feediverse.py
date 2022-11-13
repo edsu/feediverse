@@ -32,7 +32,7 @@ def main():
         print("using config file", config_file)
 
     if not os.path.isfile(config_file):
-        setup(config_file)        
+        setup(config_file)
 
     config = read_config(config_file)
 
@@ -44,11 +44,23 @@ def main():
     )
 
     newest_post = config['updated']
+
     for feed in config['feeds']:
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
         for entry in get_feed(feed['url'], config['updated']):
             newest_post = max(newest_post, entry['updated'])
+
+            try:
+                feed['ignorelist']
+            except:
+                ignorelist = ''
+            else:
+                ignorelist = feed['ignorelist'].split(', ')
+                print(ignorelist)
+                if any(x in entry["title"] for x in ignorelist):
+                    continue
+
             if args.verbose:
                 print(entry)
             if args.dry_run:
@@ -144,7 +156,7 @@ def setup(config_file):
         access_token = input('access_token: ')
     else:
         print("Ok, I'll need a few things in order to get your access token")
-        name = input('app name (e.g. feediverse): ') 
+        name = input('app name (e.g. feediverse): ')
         client_id, client_secret = Mastodon.create_app(
             api_base_url=url,
             client_name=name,
