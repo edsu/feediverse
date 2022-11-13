@@ -57,7 +57,8 @@ def main():
                 ignoretitle = ''
             else:
                 ignoretitle = feed['ignoretitle'].split(', ')
-                print(ignoretitle)
+                if args.verbose:
+                        print(f"ignoring {ignoretitle}")
                 if any(x in entry["title"] for x in ignoretitle):
                     continue
 
