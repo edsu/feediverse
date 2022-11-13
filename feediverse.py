@@ -52,13 +52,13 @@ def main():
             newest_post = max(newest_post, entry['updated'])
 
             try:
-                feed['ignorelist']
+                feed['ignoretitle']
             except:
-                ignorelist = ''
+                ignoretitle = ''
             else:
-                ignorelist = feed['ignorelist'].split(', ')
-                print(ignorelist)
-                if any(x in entry["title"] for x in ignorelist):
+                ignoretitle = feed['ignoretitle'].split(', ')
+                print(ignoretitle)
+                if any(x in entry["title"] for x in ignoretitle):
                     continue
 
             if args.verbose:
