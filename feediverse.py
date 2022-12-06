@@ -24,9 +24,13 @@ def main():
     parser.add_argument("-c", "--config",
                         help="config file to use",
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
+    parser.add_argument("-d", "--dedupe",
+                        help="dedupe against the given field",
+                        default="")
 
     args = parser.parse_args()
     config_file = args.config
+    dedupe_field = args.dedupe
 
     if args.verbose:
         print("using config file", config_file)
@@ -44,6 +48,7 @@ def main():
     )
 
     newest_post = config['updated']
+    dupes = config['dupecheck']
     for feed in config['feeds']:
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
@@ -51,13 +56,22 @@ def main():
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
                 print(entry)
+            if dedupe_field:
+              if entry[dedupe_field] in dupes:
+                if args.verbose:
+                  print("Skipping dupe post: ", entry["title"][:50],
+                        "based on dedupe field (", dedupe_field, ")")
+                continue
+              update_dupes(dupes, entry[dedupe_field])
             if args.dry_run:
                 print("trial run, not tooting ", entry["title"][:50])
                 continue
+
             masto.status_post(feed['template'].format(**entry)[:499])
 
     if not args.dry_run:
         config['updated'] = newest_post.isoformat()
+        config['dupecheck'] = dupes
         save_config(config, config_file)
 
 def get_feed(feed_url, last_update):
@@ -70,6 +84,11 @@ def get_feed(feed_url, last_update):
     entries.sort(key=lambda e: e.updated_parsed)
     for entry in entries:
         yield get_entry(entry)
+
+def update_dupes(dupes, new):
+   if len(dupes) > 10:
+     del dupes[0]
+   dupes.append(new)
 
 def get_entry(entry):
     hashtags = []
@@ -125,7 +144,8 @@ def save_config(config, config_file):
 
 def read_config(config_file):
     config = {
-        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc)
+        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc),
+        'dupecheck': [],
     }
     with open(config_file) as fh:
         cfg = yaml.load(fh, yaml.SafeLoader)
