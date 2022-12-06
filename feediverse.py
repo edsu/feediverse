@@ -25,8 +25,8 @@ def main():
                         help="config file to use",
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
     parser.add_argument("-d", "--dedupe",
-                        help="dedupe against the given field",
-                        default="")
+                        help="dedupe against the given tag",
+                        default="", metavar="TAG")
 
     args = parser.parse_args()
     config_file = args.config
