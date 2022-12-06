@@ -40,6 +40,16 @@ separated list of hashtags. For some feeds (e.g. youtube-rss) you should use `{l
 stripped). Please be aware that this might easily exceed Mastodon's
 limit of 512 characters.
 
+
+## De-duping
+
+If you are attempting to use the RSS feed of a major news site, you may find
+that they change / update (or just re-post) the same items multiple times which
+will lead to duplicate toots. To enable de-duplication, use the `{--dedupe}`
+option to check for duplicates based on a tag before tooting, e.g.
+
+    feediverse --dedupe url
+
 ## Multiple Feeds
 
 Since *feeds* is a list you can add additional feeds to watch if you want.
