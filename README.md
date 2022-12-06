@@ -47,6 +47,7 @@ If you are attempting to use the RSS feed of a major news site, you may find
 that they change / update (or just re-post) the same items multiple times which
 will lead to duplicate toots. To enable de-duplication, use the `{--dedupe}`
 option to check for duplicates based on a tag before tooting, e.g.
+
     feediverse --dedupe url
 
 ## Multiple Feeds
