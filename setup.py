@@ -18,6 +18,7 @@ setup(
                       'feedparser',
                       'mastodon.py',
                       'python-dateutil',
-                      'pyyaml'],
+                      'pyyaml',
+                      'requests'],
     entry_points={'console_scripts': ['feediverse = feediverse:main']}
 )
