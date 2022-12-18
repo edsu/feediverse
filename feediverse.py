@@ -7,6 +7,7 @@ import yaml
 import argparse
 import dateutil
 import feedparser
+import requests
 
 from bs4 import BeautifulSoup
 from mastodon import Mastodon
@@ -54,7 +55,16 @@ def main():
             if args.dry_run:
                 print("trial run, not tooting ", entry["title"][:50])
                 continue
-            masto.status_post(feed['template'].format(**entry)[:499])
+            
+            image_medias = []
+            if feed['include_images'] and entry['images']:
+                for image in entry['images'][:4]:
+                    try:
+                        image_response = requests.get(image)
+                        image_medias.append(masto.media_post(image_response.content, mime_type=image_response.headers['Content-Type']))
+                    except:
+                        print('There was an error uploading a file')
+            masto.status_post(feed['template'].format(**entry)[:499], media_ids=image_medias)
 
     if not args.dry_run:
         config['updated'] = newest_post.isoformat()
@@ -88,6 +98,7 @@ def get_entry(entry):
         'summary': cleanup(summary),
         'content': content,
         'hashtags': ' '.join(hashtags),
+        'images': find_images(summary),
         'updated': dateutil.parser.parse(entry['updated'])
     }
 
@@ -109,6 +120,18 @@ def find_urls(html):
         if tag.name == "a":
             url = tag.get("href")
         elif tag.name == "img":
+            url = tag.get("src")
+        if url and url not in urls:
+            urls.append(url)
+    return urls
+
+def find_images(html):
+    if not html:
+        return
+    urls = []
+    soup = BeautifulSoup(html, 'html.parser')
+    for tag in soup.find_all(["img"]):
+        if tag.name == "img":
             url = tag.get("src")
         if url and url not in urls:
             urls.append(url)
@@ -158,6 +181,7 @@ def setup(config_file):
 
     feed_url = input('RSS/Atom feed URL to watch: ')
     old_posts = yes_no('Shall already existing entries be tooted, too?')
+    include_images = yes_no('Do you want to attach images (the first 4) found in entries to your toot?')
     config = {
         'name': name,
         'url': url,
@@ -165,7 +189,7 @@ def setup(config_file):
         'client_secret': client_secret,
         'access_token': access_token,
         'feeds': [
-            {'url': feed_url, 'template': '{title} {url}'}
+            {'url': feed_url, 'template': '{title} {url}', 'include_images': include_images}
         ]
     }
     if not old_posts:

@@ -2,9 +2,14 @@
 It's meant to add a little bit of spice to your timeline from other places.
 Please use it responsibly.
 
-## Install
+## Build Locally
 
-    pip install feediverse
+Check out this repository, and then run the following commands:
+
+    pip install wheel
+    pip install .
+
+[Source](https://towardsdatascience.com/building-a-python-package-without-publishing-e2d36c4686cd)
 
 ## Run
 
