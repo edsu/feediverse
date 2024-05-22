@@ -98,6 +98,7 @@ def get_entry(entry):
     return {
         'url': url,
         'link': entry.link,
+        'links': entry.links,
         'comments': entry.comments,
         'title': cleanup(entry.title),
         'summary': cleanup(summary),
