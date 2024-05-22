@@ -28,9 +28,13 @@ def main():
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
     parser.add_argument("-d", "--delay", action="store_true",
                         help="delay randomly from 10 to 30 seconds between each post")
+    parser.add_argument("-p", "--dedupe",
+                        help="dedupe against the given tag",
+                        default="", metavar="TAG")
 
     args = parser.parse_args()
     config_file = args.config
+    dedupe_field = args.dedupe
 
     if args.verbose:
         print("using config file", config_file)
@@ -48,18 +52,28 @@ def main():
     )
 
     newest_post = config['updated']
+    dupes = config['dupecheck']
     for feed in config['feeds']:
         if args.verbose:
             print(f"fetching {feed['url']} entries since {config['updated']}")
         for entry in get_feed(feed['url'], config['updated']):
             newest_post = max(newest_post, entry['updated'])
-            if args.verbose:
-                print(entry)
+            entry_text = feed['template'].format(**entry)[:499]
 
             if args.dry_run:
-                print("trial run, not tooting ", entry["title"][:50])
+                print(entry_text)
                 continue
-            
+
+            if args.verbose:
+                print(entry_text)
+
+            if dedupe_field:
+                if entry[dedupe_field] in dupes:
+                    if args.verbose:
+                        print(f"Skipping dupe post: {entry_text} based on dedupe field {dedupe_field}")
+                    continue
+                update_dupes(dupes, entry[dedupe_field])
+           
             image_medias = []
             if feed['include_images'] and entry['images']:
                 for image in entry['images'][:4]:
@@ -69,7 +83,7 @@ def main():
 
             if not args.dry_run:
                 masto.status_post(
-                    feed['template'].format(**entry)[:499],
+                    entry_text,
                     media_ids=image_medias
                 )
 
@@ -80,6 +94,7 @@ def main():
 
     if not args.dry_run:
         config['updated'] = newest_post.isoformat()
+        config['dupecheck'] = dupes
         save_config(config, config_file)
 
 def get_feed(feed_url, last_update):
@@ -98,13 +113,19 @@ def get_feed(feed_url, last_update):
     for entry in entries:
         yield get_entry(entry)
 
+def update_dupes(dupes, new):
+   if len(dupes) > 10:
+     del dupes[0]
+   dupes.append(new)
+
 def get_entry(entry):
     hashtags = []
     for tag in entry.get('tags', []):
         t = tag['term'].replace(' ', '_').replace('.', '').replace('-', '')
         hashtags.append('#{}'.format(t))
     summary = entry.get('summary', '')
-    content = entry.get('content', '') or ''
+    content = entry.get('content', '')
+    comments = entry.get('comments', '')
     if content:
         content = cleanup(content[0].get('value', ''))
     url = entry.id
@@ -112,7 +133,7 @@ def get_entry(entry):
         'url': url,
         'link': entry.link,
         'links': entry.links,
-        'comments': entry.comments,
+        'comments': comments,
         'title': cleanup(entry.title),
         'summary': cleanup(summary),
         'content': content,
@@ -167,7 +188,8 @@ def save_config(config, config_file):
 
 def read_config(config_file):
     config = {
-        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc)
+        'updated': datetime(MINYEAR, 1, 1, 0, 0, 0, 0, timezone.utc),
+        'dupecheck': [],
     }
     with open(config_file) as fh:
         cfg = yaml.load(fh, yaml.SafeLoader)
