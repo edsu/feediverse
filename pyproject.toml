@@ -13,6 +13,7 @@ feedparser = "^6.0.11"
 mastodon-py = "^1.8.1"
 python-dateutil = "^2.9.0.post0"
 pyyaml = "^6.0.1"
+requests = "^2.32.2"
 
 [tool.poetry.scripts]
 feediverse = "feediverse:main"

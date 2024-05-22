@@ -51,3 +51,7 @@ Since *feeds* is a list you can add additional feeds to watch if you want.
       - url: https://example.org/feed/
         template: "dot org: {title} {url}"
 
+## Develop
+
+    poetry install
+    poetry run feediverse
