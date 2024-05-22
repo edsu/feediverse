@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "feediverse"
+version = "0.3.1"
+description = "Connect an RSS Feed to Mastodon"
+authors = ["Ed Summers <ehs@pobox.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = "^4.12.3"
+feedparser = "^6.0.11"
+mastodon-py = "^1.8.1"
+python-dateutil = "^2.9.0.post0"
+pyyaml = "^6.0.1"
+
+[tool.poetry.scripts]
+feediverse = "feediverse:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
