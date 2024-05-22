@@ -6,6 +6,8 @@ import yaml
 import argparse
 import dateutil
 import feedparser
+import random
+import time
 import requests
 
 from bs4 import BeautifulSoup
@@ -24,6 +26,8 @@ def main():
     parser.add_argument("-c", "--config",
                         help="config file to use",
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
+    parser.add_argument("-d", "--delay", action="store_true",
+                        help="delay randomly from 10 to 30 seconds between each post")
 
     args = parser.parse_args()
     config_file = args.config
@@ -51,6 +55,7 @@ def main():
             newest_post = max(newest_post, entry['updated'])
             if args.verbose:
                 print(entry)
+
             if args.dry_run:
                 print("trial run, not tooting ", entry["title"][:50])
                 continue
@@ -58,12 +63,20 @@ def main():
             image_medias = []
             if feed['include_images'] and entry['images']:
                 for image in entry['images'][:4]:
-                    try:
-                        image_response = requests.get(image)
-                        image_medias.append(masto.media_post(image_response.content, mime_type=image_response.headers['Content-Type']))
-                    except:
-                        print('There was an error uploading a file')
-            masto.status_post(feed['template'].format(**entry)[:499], media_ids=image_medias)
+                    # TODO: handle image fetch and upload exceptions
+                    image_response = requests.get(image)
+                    image_medias.append(masto.media_post(image_response.content, mime_type=image_response.headers['Content-Type']))
+
+            if not args.dry_run:
+                masto.status_post(
+                    feed['template'].format(**entry)[:499],
+                    media_ids=image_medias
+                )
+
+            if args.delay:
+                delay = random.randrange(10,30)
+                print("Delaying..." + str(delay) + " seconds...")
+                time.sleep(delay)
 
     if not args.dry_run:
         config['updated'] = newest_post.isoformat()
