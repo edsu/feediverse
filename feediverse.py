@@ -28,6 +28,9 @@ def main():
                         default=os.path.expanduser(DEFAULT_CONFIG_FILE))
     parser.add_argument("-d", "--delay", action="store_true",
                         help="delay randomly from 10 to 30 seconds between each post")
+    parser.add_argument("-m", "--maximum", action="count",
+                        help="limit number of posts to given number",
+                        default=0)
     parser.add_argument("-p", "--dedupe",
                         help="dedupe against the given tag",
                         default="", metavar="TAG")
@@ -112,6 +115,11 @@ def get_feed(feed_url, last_update):
     entries.sort(key=lambda e: e.updated_parsed)
     for entry in entries:
         yield get_entry(entry)
+
+    # Get only maximum number of items in feed, if specified in args
+    if args.maximum > 0:
+        max = min(args.maximum, len(entries)):
+        entries = entries[:max]
 
 def update_dupes(dupes, new):
    if len(dupes) > 10:
