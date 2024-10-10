@@ -75,7 +75,7 @@ def main():
                 update_dupes(dupes, entry[dedupe_field])
            
             image_medias = []
-            if feed['include_images'] and entry['images']:
+            if feed.get('include_images', False) and entry['images']:
                 for image in entry['images'][:4]:
                     # TODO: handle image fetch and upload exceptions
                     image_response = requests.get(image)

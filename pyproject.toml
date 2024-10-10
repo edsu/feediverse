@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "feediverse"
-version = "0.4.0"
+version = "0.4.1"
 description = "Connect an RSS Feed to Mastodon"
 authors = ["Ed Summers <ehs@pobox.com>"]
 license = "MIT"
